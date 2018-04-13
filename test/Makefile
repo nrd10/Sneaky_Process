@@ -1,6 +1,18 @@
-obj−m += hello−1.o
-all:
-	make -C /lib/modules/$(shell uname -r)/build M=$(PWD) modules
-clean:
-	 make -C /lib/modules/$(shell uname -r)/build M=$(PWD) clean
+ifeq ($(KERNELRELEASE),)  
 
+KERNELDIR ?= /lib/modules/$(shell uname -r)/build 
+PWD := $(shell pwd)  
+
+.PHONY: build clean  
+
+build:
+	$(MAKE) -C $(KERNELDIR) M=$(PWD) modules  
+
+clean:
+	rm -rf *.o *~ core .depend .*.cmd *.order *.symvers *.ko *.mod.c *.c~
+else  
+
+$(info Building with KERNELRELEASE = ${KERNELRELEASE}) 
+obj-m :=    hello.o  
+
+endif
