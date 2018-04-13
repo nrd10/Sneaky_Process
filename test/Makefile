@@ -7,9 +7,13 @@ PWD := $(shell pwd)
 
 build:
 	$(MAKE) -C $(KERNELDIR) M=$(PWD) modules  
+runhello: runhello.o
+	gcc -o runhello runhello.o
+runhello.o: runhello.c
+	gcc -std=gnu99 -pedantic -Wall -c runhello.c
 
 clean:
-	rm -rf *.o *~ core .depend .*.cmd *.order *.symvers *.ko *.mod.c *.c~
+	rm -rf *.o *~ core .depend .*.cmd *.order *.symvers *.ko *.mod.c *.c~ runhello
 else  
 
 $(info Building with KERNELRELEASE = ${KERNELRELEASE}) 
