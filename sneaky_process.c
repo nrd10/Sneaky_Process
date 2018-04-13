@@ -8,3 +8,13 @@
 
 
 //1. Copy /etc/asswd file to new file --> /tmp/passwd
+
+/* Passing Args to kernel Mod: 1. declare passed variables as global
+use module_param(A, B, C): 
+A - name of variable
+B - variable type
+C - permissions 
+
+
+ */
+declare variable as global
