@@ -8,19 +8,17 @@ int main(void) {
   //get process ID
   int PID;
   PID = getpid();
-  printf("Hello Process PID from getpid() is:%d!\n", PID);
-  //add number to num
+   //add number to num
   char num[20];
+  //get PID into string
   sprintf(num, "%d", PID);
-  printf("The PID after sprintf is:%s\n", num);
   char str[100];
   strcpy(str, "sudo insmod hello.ko");
   strcat(str, " pid=");
   strcat(str, num);
-  printf("My string is:%s\n", str);
   //attempt to load kernel module using insmod
-  system("sudo insmod hello.ko");
-
+  system(str);
+  
   //print out log of Kernel Module
   system("dmesg | tail -1");
 

