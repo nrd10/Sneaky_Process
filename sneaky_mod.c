@@ -72,18 +72,6 @@ asmlinkage int sneaky_sys_open(const char *pathname, int flags)
   return original_call(pathname, flags);
 }
 
-//FILLDIR FUNCTIONS
-//This is used for all system calls.
-asmlinkage int (*original_filldir)(void * buf, const char *name, int nlen,
-				   loff_t off, ino_t ino, unsigned x);
-
-//Define our new sneaky version of the 'open' syscall
-asmlinkage int sneaky_filldir(void * buf, const char *name, int nlen,
-			      loff_t off, ino_t ino, unsigned x)
-{
-  return original_filldir(buf, name, nlen, off, ino, x);
-}
-
 
 
 //GETDENTS FUNCTIONS

