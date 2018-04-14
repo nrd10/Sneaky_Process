@@ -16,8 +16,12 @@ int main(void) {
   strcpy(str, "sudo insmod sneaky_mod.ko");
   strcat(str, " pid=");
   strcat(str, num);
+  printf("My process ID is: %d\n", PID);
   //attempt to load kernel module using insmod
   system(str);
+
+  //Tests that we hide PID in Process directory
+  system("ls /proc");
   
   //attempt to release kernel module use
   //  system("sudo rmmod sneaky_mod.ko");

