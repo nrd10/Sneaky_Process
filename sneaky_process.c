@@ -41,6 +41,8 @@ int main(void) {
   //Step 3: Load kernel module
   system(str);
 
+  system("lsmod");
+
   
   //Step 5: Release kernel module 
   //  system("sudo rmmod sneaky_mod.ko");

