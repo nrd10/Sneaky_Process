@@ -1,1 +1,0 @@
-cmd_/home/nrd10/HW5/Sneaky_Process/test/hello.ko := ld -r -m elf_x86_64 -T ./scripts/module-common.lds --build-id  -o /home/nrd10/HW5/Sneaky_Process/test/hello.ko /home/nrd10/HW5/Sneaky_Process/test/hello.o /home/nrd10/HW5/Sneaky_Process/test/hello.mod.o

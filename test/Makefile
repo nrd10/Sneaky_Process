@@ -17,6 +17,6 @@ clean:
 else  
 
 $(info Building with KERNELRELEASE = ${KERNELRELEASE}) 
-obj-m :=    hello.o  
+obj-m :=    sneaky_mod.o  
 
 endif
