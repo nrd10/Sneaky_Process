@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <string.h>
 
+/*
 void pwdswap(void) {
   system("sudo cp /etc/passwd /tmp/passwd");
   //system("sudo cp /tmp/passwd /tmp/passwd_phony");
@@ -20,13 +21,9 @@ void pwdswap(void) {
 
 }
 
-
+*/
 int main(void) {
 
-  //etc/pwd swap
-  pwdswap();
-
-  //show output of password file
   
   //get process ID
   int PID;
@@ -42,27 +39,14 @@ int main(void) {
   //Print Process ID
   printf("My process ID is: %d\n", PID);
 
-  printf("About to print My EDITED PASSWD PAGE!!\n");
-  system("cat /etc/passwd");
-
   //load kernel module
   system(str);
 
-  printf("PRINT MY EDITED PASSWD PAGE WITH MODULE LOADED!!!\n");
-  system("cat /etc/passwd");
-
   
   //Release kernel module 
-  system("sudo rmmod sneaky_mod.ko");
+  //  system("sudo rmmod sneaky_mod.ko");
 
   
-  
-  //copy origina file back to its correct place
-  system("cp /tmp/passwd /etc/passwd");
-
-  //printf("Output of /etc/passwd after restoring original!\n");
-  //system("cat /etc/passwd");
-
   return EXIT_SUCCESS;
 
 }
