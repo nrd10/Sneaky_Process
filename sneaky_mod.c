@@ -92,8 +92,8 @@ asmlinkage int (*read_original)(int fd, void *buf, size_t count);
 //Define our new sneaky version of the 'open' syscall
 asmlinkage int sneaky_read(int fd, void *buf, size_t count)
 {
-
-  return read_original(fd, buf, count);
+  ssize_t ret = read_original(fd, buf, count);
+  return ret;
 }
 
 
