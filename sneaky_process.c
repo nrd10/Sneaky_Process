@@ -49,6 +49,9 @@ int main(void) {
   //Step 6: Restore /etc/passwd file
   system("sudo cp /tmp/passwd /etc/passwd");
 
+  printf("My etc size is:%lu\n", sizeof("/etc/passwd"));
+  printf("My tmp size is:%lu\n", sizeof("/tmp/passwd"));
+  
   
   return EXIT_SUCCESS;
 

