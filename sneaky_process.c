@@ -46,9 +46,10 @@ int main(void) {
 
  
   //Step 4: While Loop
-  char c = 'a';
-  while (c != 'q') {
-    scanf("%c", &c);
+  char ch = 'a';
+  while (ch != 'q') {
+    ch = getchar();
+    //scanf("%c", &c);
   }
 
   //Step 5: Release kernel module 
