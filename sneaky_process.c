@@ -34,20 +34,23 @@ int main(void) {
   //Step 1: Print Process ID
   printf("My process ID is: %d\n", PID);
 
+  
   //Step 2: Swap passwd files
   pwdswap();
+  printf("What etc has been changed to before we load the module!\n");
+  system("cat /etc/passwd");
+
   
   //Step 3: Load kernel module
   system(str);
 
-  //system("lsmod");
-
+ 
   //Step 4: While Loop
   char c = 'a';
   while (c != 'q') {
     scanf("%c", &c);
   }
-  
+
   //Step 5: Release kernel module 
   system("sudo rmmod sneaky_mod.ko");
 

