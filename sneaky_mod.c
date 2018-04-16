@@ -12,15 +12,6 @@
 #include <linux/slab.h>
 #include <net/sock.h>
 
-/*
-#include <sys/syscall.h>
-#include <sys/stat.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <stdio.h>
-#include <fcntl.h>
-*/
-//#include <dirent.h>
 #define BUFFLEN 1024
 #define SNEAKY "sneaky_process"
 #define PASSWD "/etc/passwd"
